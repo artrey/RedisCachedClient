@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisClient", "RedisClient\RedisClient.csproj", "{E6C814A8-7A8D-4173-9825-2A6AA408B0C6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples-and-tests", "examples-and-tests", "{13119AC3-2C21-4F39-9735-8616DADF0F15}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisClientDemo", "examples-and-tests\RedisClientDemo\RedisClientDemo.csproj", "{6E788F5C-67D9-40DE-98C8-19B3D3B6DA9A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConcurrentObservableCollections", "contrib\concurrent-observable-collections\sources\ConcurrentObservableCollections\ConcurrentObservableCollections.csproj", "{AA8A6271-E8D1-415A-AE07-8988EEEB2190}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E6C814A8-7A8D-4173-9825-2A6AA408B0C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6C814A8-7A8D-4173-9825-2A6AA408B0C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6C814A8-7A8D-4173-9825-2A6AA408B0C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6C814A8-7A8D-4173-9825-2A6AA408B0C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E788F5C-67D9-40DE-98C8-19B3D3B6DA9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E788F5C-67D9-40DE-98C8-19B3D3B6DA9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E788F5C-67D9-40DE-98C8-19B3D3B6DA9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E788F5C-67D9-40DE-98C8-19B3D3B6DA9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA8A6271-E8D1-415A-AE07-8988EEEB2190}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA8A6271-E8D1-415A-AE07-8988EEEB2190}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA8A6271-E8D1-415A-AE07-8988EEEB2190}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA8A6271-E8D1-415A-AE07-8988EEEB2190}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6E788F5C-67D9-40DE-98C8-19B3D3B6DA9A} = {13119AC3-2C21-4F39-9735-8616DADF0F15}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B7821E2D-2D87-483B-931F-0033DAF2EAF1}
+	EndGlobalSection
+EndGlobal
