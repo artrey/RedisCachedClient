@@ -89,17 +89,17 @@ namespace RedisClient
 
         private async Task UpdateAllDataForeverAsync()
         {
-            try
+            while (IsConnected)
             {
-                while (IsConnected)
+                try
                 {
                     UpdateAllData();
                     await Task.Delay(RequestDelay);
                 }
-            }
-            catch (Exception)
-            {
-                // ignored
+                catch (Exception)
+                {
+                    // ignored
+                }
             }
         }
     }
