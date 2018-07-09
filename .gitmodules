@@ -1,3 +1,0 @@
-[submodule "sources/contrib/concurrent-observable-collections"]
-	path = sources/contrib/concurrent-observable-collections
-	url = git@git.softdi.ru:libraries/concurrent-observable-collections.git
