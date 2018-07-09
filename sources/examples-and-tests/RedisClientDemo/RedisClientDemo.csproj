@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\RedisClient\RedisCachedClient.csproj" />
+    <ProjectReference Include="..\..\RedisCachedClient\RedisCachedClient.csproj" />
   </ItemGroup>
 
 </Project>

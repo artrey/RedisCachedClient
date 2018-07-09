@@ -1,6 +1,6 @@
 ﻿using System;
 using StackExchange.Redis;
-using RedisClient;
+using RedisCachedClient;
 
 namespace RedisClientDemo
 {
