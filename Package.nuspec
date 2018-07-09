@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata minClientVersion="2.5">
+    <id>RedisCachedClient</id>
+    <version>1.0.0</version>
+    <authors>artrey</authors>
+    <owners>artrey</owners>
+    <licenseUrl>https://raw.githubusercontent.com/artrey/RedisCachedClient/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/artrey/RedisCachedClient</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Cached client for redis based on StackExchange.Redis</description>
+    <releaseNotes />
+	<repository type="git" url="https://github.com/artrey/RedisCachedClient/" />
+    <copyright>Copyright 2018</copyright>
+    <tags>netstandard redis client cached</tags>
+	<dependencies>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="ConcurrentObservableCollections" version="1.0.1" />
+        <dependency id="StackExchange.Redis" version="1.2.6" />
+      </group>      
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="build\**" target="lib\" />
+	<file src="LICENSE.txt" target="" />
+  </files>
+</package>
