@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using StackExchange.Redis;
 using ConcurrentObservableCollections.ConcurrentObservableDictionary;
+using StackExchange.Redis;
 
-namespace RedisClient
+namespace RedisCachedClient
 {
     public class CachedClient
     {

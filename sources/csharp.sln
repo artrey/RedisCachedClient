@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2026
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisClient", "RedisClient\RedisClient.csproj", "{E6C814A8-7A8D-4173-9825-2A6AA408B0C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisCachedClient", "RedisClient\RedisCachedClient.csproj", "{E6C814A8-7A8D-4173-9825-2A6AA408B0C6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples-and-tests", "examples-and-tests", "{13119AC3-2C21-4F39-9735-8616DADF0F15}"
 EndProject

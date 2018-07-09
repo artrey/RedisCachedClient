@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using StackExchange.Redis;
 
-namespace RedisClient
+namespace RedisCachedClient
 {
     public class CachedClientManager
     {
