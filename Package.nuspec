@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata minClientVersion="2.5">
     <id>RedisCachedClient</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <authors>artrey</authors>
     <owners>artrey</owners>
     <licenseUrl>https://raw.githubusercontent.com/artrey/RedisCachedClient/master/LICENSE.txt</licenseUrl>
@@ -14,10 +14,8 @@
     <copyright>Copyright 2018</copyright>
     <tags>netstandard redis client cached</tags>
 	<dependencies>
-      <group targetFramework=".NETStandard2.0">
-        <dependency id="ConcurrentObservableCollections" version="1.0.1" />
-        <dependency id="StackExchange.Redis" version="1.2.6" />
-      </group>      
+      <dependency id="ConcurrentObservableCollections" version="1.0.1" />
+      <dependency id="StackExchange.Redis" version="1.2.6" />
     </dependencies>
   </metadata>
   <files>
