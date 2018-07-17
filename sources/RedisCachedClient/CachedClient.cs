@@ -72,6 +72,11 @@ namespace RedisCachedClient
             return _cache.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
+        public RedisValue GetCachedData(string key)
+        {
+            return _cache[key];
+        }
+
         protected virtual void UpdateAllData()
         {
             var keys = (RedisKey[])_database.Execute("keys", "*");
