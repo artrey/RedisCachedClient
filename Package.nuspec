@@ -2,14 +2,14 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata minClientVersion="2.5">
     <id>RedisCachedClient</id>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <authors>artrey</authors>
     <owners>artrey</owners>
     <licenseUrl>https://raw.githubusercontent.com/artrey/RedisCachedClient/master/LICENSE.txt</licenseUrl>
     <projectUrl>https://github.com/artrey/RedisCachedClient</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Cached client for redis based on StackExchange.Redis</description>
-    <releaseNotes>Added GetCachedData method</releaseNotes>
+    <releaseNotes>Replaced method GetCachedData to TryGetCachedData</releaseNotes>
 	<repository type="git" url="https://github.com/artrey/RedisCachedClient/" />
     <copyright>Copyright 2018</copyright>
     <tags>netstandard redis client cached</tags>
