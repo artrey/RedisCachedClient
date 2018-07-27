@@ -14,7 +14,7 @@
     <copyright>Copyright 2018</copyright>
     <tags>netstandard redis client cached</tags>
 	<dependencies>
-      <dependency id="ConcurrentObservableCollections" version="1.0.1" />
+      <dependency id="ConcurrentObservableCollections" version="1.1.1" />
       <dependency id="StackExchange.Redis" version="1.2.6" />
     </dependencies>
   </metadata>
