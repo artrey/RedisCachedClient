@@ -28,22 +28,22 @@ namespace RedisCachedClient
 
         public bool Connect()
         {
-            if (!IsConnected)
-            {
-                _cancelToken = new CancellationTokenSource();
-                IsConnected = true;
-                Task.Factory.StartNew(UpdateAllDataForeverAsync, _cancelToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-            }
+            if (IsConnected) return IsConnected;
+
+            _cancelToken = new CancellationTokenSource();
+            IsConnected = true;
+            Task.Factory.StartNew(UpdateAllDataForeverAsync, _cancelToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+
             return IsConnected;
         }
 
         public bool Disconnect()
         {
-            if (IsConnected)
-            {
-                IsConnected = false;
-                _cancelToken.Cancel();
-            }
+            if (!IsConnected) return !IsConnected;
+
+            IsConnected = false;
+            _cancelToken.Cancel();
+
             return !IsConnected;
         }
 
@@ -77,12 +77,32 @@ namespace RedisCachedClient
             return _cache.TryGetValue(key, out value);
         }
 
+        public IRedisClientObserver AddPartialObserver(IRedisClientObserver observer, params string[] keys)
+        {
+            return _cache.AddPartialObserver(observer, keys) as IRedisClientObserver;
+        }
+
+        public bool RemovePartialObserver(IRedisClientObserver observer, params string[] keys)
+        {
+            return _cache.RemovePartialObserver(observer, keys);
+        }
+
+        public bool RemovePartialObserver(IRedisClientObserver observer)
+        {
+            return _cache.RemovePartialObserver(observer);
+        }
+
+        public bool RemovePartialObserver(params string[] keys)
+        {
+            return _cache.RemovePartialObserver(keys);
+        }
+
         protected virtual void UpdateAllData()
         {
             var keys = (RedisKey[])_database.Execute("keys", "*");
             var values = _database.StringGet(keys);
 
-            for (int i = 0; i < keys.Length; ++i)
+            for (var i = 0; i < keys.Length; ++i)
             {
                 _cache.AddOrUpdate(keys[i], values[i]);
             }

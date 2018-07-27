@@ -5,9 +5,9 @@ VisualStudioVersion = 15.0.27703.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisCachedClient", "RedisCachedClient\RedisCachedClient.csproj", "{E6C814A8-7A8D-4173-9825-2A6AA408B0C6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples-and-tests", "examples-and-tests", "{13119AC3-2C21-4F39-9735-8616DADF0F15}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExamplesAndTests", "ExamplesAndTests", "{13119AC3-2C21-4F39-9735-8616DADF0F15}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisClientDemo", "examples-and-tests\RedisClientDemo\RedisClientDemo.csproj", "{6E788F5C-67D9-40DE-98C8-19B3D3B6DA9A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisClientDemo", "ExamplesAndTests\RedisClientDemo\RedisClientDemo.csproj", "{6E788F5C-67D9-40DE-98C8-19B3D3B6DA9A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
