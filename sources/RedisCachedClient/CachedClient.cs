@@ -102,14 +102,12 @@ namespace RedisCachedClient
             var keys = (RedisKey[])_database.Execute("keys", "*");
             var values = _database.StringGet(keys);
 
-            for (var i = 0; i < keys.Length; ++i)
-            {
-                _cache.AddOrUpdate(keys[i], values[i]);
-            }
-            foreach (var key in _cache.Keys.Except(keys.Select(k => (string)k)))
-            {
-                _cache.TryRemove(key, out _);
-            }
+            Task.WaitAll(
+                // adding and updating
+                keys.Select((t, i) => i).Select(j => Task.Run(() => _cache.AddOrUpdate(keys[j], values[j]))).Cast<Task>()
+                // and removing
+                .Union(_cache.Keys.Except(keys.Select(k => (string)k)).Select(key => Task.Run(() => _cache.TryRemove(key, out _)))).ToArray()
+            );
         }
 
         private async Task UpdateAllDataForeverAsync()
