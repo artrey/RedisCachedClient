@@ -8,13 +8,15 @@ using StackExchange.Redis;
 
 namespace RedisCachedClient
 {
+    using RedisChangedEventArgs = DictionaryChangedEventArgs<string, RedisValue>;
+
     public class CachedClient
     {
         private readonly IDatabase _database;
         private readonly ConcurrentObservableDictionary<string, RedisValue> _cache = new ConcurrentObservableDictionary<string, RedisValue>();
         private CancellationTokenSource _cancelToken;
 
-        public event EventHandler<DictionaryChangedEventArgs<string, RedisValue>> DataChanged;
+        public event EventHandler<RedisChangedEventArgs> DataChanged;
 
         public int RequestDelay { get; set; }
         public int DatabaseId => _database.Database;
@@ -77,9 +79,14 @@ namespace RedisCachedClient
             return _cache.TryGetValue(key, out value);
         }
 
-        public IRedisClientObserver AddPartialObserver(IRedisClientObserver observer, params string[] keys)
+        public bool AddPartialObserver(IRedisClientObserver observer, params string[] keys)
         {
-            return _cache.AddPartialObserver(observer, keys) as IRedisClientObserver;
+            return !(_cache.AddPartialObserver(observer, keys) is null);
+        }
+
+        public bool AddPartialObserver(Action<RedisChangedEventArgs> action, params string[] keys)
+        {
+            return !(_cache.AddPartialObserver(action, keys) is null);
         }
 
         public bool RemovePartialObserver(IRedisClientObserver observer, params string[] keys)
