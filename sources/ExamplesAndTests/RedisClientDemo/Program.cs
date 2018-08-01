@@ -4,9 +4,9 @@ using RedisCachedClient;
 
 namespace RedisClientDemo
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main()
         {
             Console.WriteLine("Hello World!");
 
@@ -31,7 +31,7 @@ namespace RedisClientDemo
             var t = man.GetClient(0);
             t.DataChanged += (s, e) => { Console.WriteLine($"[{e.Action}] {e.Key}: {e.OldValue} -> {e.NewValue}"); };
             t.AddPartialObserver(new RedisClientObserver(), "test");
-            t.AddPartialObserver(a => Console.WriteLine(a.NewValue), "test");
+            t.AddPartialObserver(e => Console.WriteLine($"Auto observer [{e.Action}] {e.Key}: {e.OldValue} -> {e.NewValue}"), "test");
             t.RequestDelay = 200;
             t.Connect();
 

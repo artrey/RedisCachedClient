@@ -9,7 +9,7 @@ namespace RedisClientDemo
     {
         public void OnEventOccur(DictionaryChangedEventArgs<string, RedisValue> args)
         {
-            Console.WriteLine($"[{args.Action}] {args.Key}: {args.OldValue} -> {args.NewValue} from observer");
+            Console.WriteLine($"Manual observer [{args.Action}] {args.Key}: {args.OldValue} -> {args.NewValue}");
         }
     }
 }

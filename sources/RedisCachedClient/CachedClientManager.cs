@@ -30,11 +30,10 @@ namespace RedisCachedClient
 
         public CachedClient GetClient(int databaseId)
         {
-            if (!_clients.TryGetValue(databaseId, out var client))
-            {
-                client = new CachedClient(_multiplexer.GetDatabase(databaseId));
-                _clients.Add(databaseId, client);
-            }
+            if (_clients.TryGetValue(databaseId, out var client)) return client;
+
+            client = new CachedClient(_multiplexer.GetDatabase(databaseId));
+            _clients.Add(databaseId, client);
             return client;
         }
     }
