@@ -13,6 +13,7 @@ namespace RedisCachedClient
     public class CachedClient
     {
         private readonly IDatabase _database;
+        private readonly HashSet<string> _cachedKeys = new HashSet<string>(); // ConcurrentHashSet not exists :(
         private readonly ConcurrentObservableDictionary<string, RedisValue> _cache = new ConcurrentObservableDictionary<string, RedisValue>();
         private CancellationTokenSource _cancelToken;
 
@@ -49,10 +50,25 @@ namespace RedisCachedClient
             return !IsConnected;
         }
 
+        public void Subscribe(params string[] keys)
+        {
+            if (keys is null) throw new ArgumentNullException(nameof(keys));
+
+            foreach (var key in keys) _cachedKeys.Add(key);
+        }
+
+        public void Unsubscribe(params string[] keys)
+        {
+            if (keys is null) throw new ArgumentNullException(nameof(keys));
+
+            foreach (var key in keys) _cachedKeys.Remove(key);
+        }
+
         public RedisValue Get(string key)
         {
             if (!IsConnected) return RedisValue.Null;
 
+            Subscribe(key);
             var val = _database.StringGet(key);
             return val.HasValue ? _cache.AddOrUpdate(key, val) : val;
         }
@@ -64,6 +80,7 @@ namespace RedisCachedClient
             var ret = _database.StringSet(key, value);
             if (ret)
             {
+                Subscribe(key);
                 _cache.AddOrUpdate(key, value);
             }
             return ret;
@@ -81,32 +98,43 @@ namespace RedisCachedClient
 
         public bool AddPartialObserver(IRedisClientObserver observer, params string[] keys)
         {
-            return !(_cache.AddPartialObserver(observer, keys) is null);
+            var ret = !(_cache.AddPartialObserver(observer, keys) is null);
+            if (ret)
+            {
+                Subscribe(keys);
+            }
+            return ret;
         }
 
         public bool AddPartialObserver(Action<RedisChangedEventArgs> action, params string[] keys)
         {
-            return !(_cache.AddPartialObserver(action, keys) is null);
+            var ret = !(_cache.AddPartialObserver(action, keys) is null);
+            if (ret)
+            {
+                Subscribe(keys);
+            }
+            return ret;
         }
 
         public bool RemovePartialObserver(IRedisClientObserver observer, params string[] keys)
         {
-            return _cache.RemovePartialObserver(observer, keys);
+            return _cache.RemovePartialObserver(observer, keys).Count > 0;
         }
 
         public bool RemovePartialObserver(IRedisClientObserver observer)
         {
-            return _cache.RemovePartialObserver(observer);
+            return _cache.RemovePartialObserver(observer).Count > 0;
         }
 
         public bool RemovePartialObserver(params string[] keys)
         {
-            return _cache.RemovePartialObserver(keys);
+            Unsubscribe(keys);
+            return _cache.RemovePartialObserver(keys).Count > 0;
         }
 
         protected virtual void UpdateAllData()
         {
-            var keys = (RedisKey[])_database.Execute("keys", "*");
+            var keys = _cachedKeys.Select(k => (RedisKey)k).ToArray();
             var values = _database.StringGet(keys);
 
             Task.WaitAll(

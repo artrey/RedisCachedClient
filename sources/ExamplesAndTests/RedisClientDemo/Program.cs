@@ -32,10 +32,12 @@ namespace RedisClientDemo
             t.DataChanged += (s, e) => { Console.WriteLine($"[{e.Action}] {e.Key}: {e.OldValue} -> {e.NewValue}"); };
             t.AddPartialObserver(new RedisClientObserver(), "test");
             t.AddPartialObserver(e => Console.WriteLine($"Auto observer [{e.Action}] {e.Key}: {e.OldValue} -> {e.NewValue}"), "test");
+            t.Subscribe("test3");
             t.RequestDelay = 200;
             t.Connect();
 
             t.Set("test", 123);
+            t.Set("test2", 123);
 
             Console.WriteLine(t.GetAllCachedData().Count);
 
