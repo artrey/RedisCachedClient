@@ -38,10 +38,20 @@ namespace RedisClientDemo
 
             t.Set("test", 123);
             t.Set("test2", 123);
+            System.Threading.Thread.Sleep(t.RequestDelay);
 
             Console.WriteLine(t.GetAllCachedData().Count);
 
-            System.Threading.Thread.Sleep(15000);
+            t.RemovePartialObserver("test");
+            System.Threading.Thread.Sleep(t.RequestDelay);
+
+            Console.WriteLine(t.GetAllCachedData().Count);
+
+            t.Set("test", 255);
+            t.ClearCache();
+
+            System.Threading.Thread.Sleep(10000);
+
             t.Disconnect();
         }
     }

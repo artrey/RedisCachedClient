@@ -13,8 +13,8 @@
     <RepositoryUrl>https://github.com/artrey/RedisCachedClient</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>netstandard redis client cached</PackageTags>
-    <PackageReleaseNotes>Replaced scanning all keys to scanning only subscription keys for improve performance</PackageReleaseNotes>
-    <Version>1.2.0</Version>
+    <PackageReleaseNotes>Added smart system of clearing</PackageReleaseNotes>
+    <Version>1.2.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -26,7 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ConcurrentObservableCollections" Version="1.1.4" />
+    <PackageReference Include="ConcurrentObservableCollections" Version="1.1.8" />
     <PackageReference Include="StackExchange.Redis" Version="1.2.6" />
   </ItemGroup>
 
