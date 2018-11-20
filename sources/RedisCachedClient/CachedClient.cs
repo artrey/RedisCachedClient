@@ -92,6 +92,33 @@ namespace RedisCachedClient
             _cachedKeys.Clear();
         }
 
+        public RedisResult Eval(string script, RedisKey[] keys = null, RedisValue[] values = null,
+            CommandFlags flags = CommandFlags.None)
+        {
+            return _database.ScriptEvaluate(script, keys, values, flags);
+        }
+
+        public RedisResult Execute(string command, params object[] args)
+        {
+            return _database.Execute(command, args);
+        }
+
+        public RedisResult Execute(string command, ICollection<object> args, CommandFlags flags = CommandFlags.None)
+        {
+            return _database.Execute(command, args, flags);
+        }
+
+        public Task<RedisResult> ExecuteAsync(string command, params object[] args)
+        {
+            return _database.ExecuteAsync(command, args);
+        }
+
+        public Task<RedisResult> ExecuteAsync(string command, ICollection<object> args,
+            CommandFlags flags = CommandFlags.None)
+        {
+            return _database.ExecuteAsync(command, args, flags);
+        }
+
         public RedisValue Get(string key)
         {
             return _database.StringGet(key);

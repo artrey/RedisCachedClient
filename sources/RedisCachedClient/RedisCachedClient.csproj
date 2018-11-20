@@ -13,8 +13,8 @@
     <RepositoryUrl>https://github.com/artrey/RedisCachedClient</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>netstandard redis client cached</PackageTags>
-    <PackageReleaseNotes>Added smart system of clearing</PackageReleaseNotes>
-    <Version>1.2.1</Version>
+    <PackageReleaseNotes>Added script evaluating</PackageReleaseNotes>
+    <Version>1.2.2</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
