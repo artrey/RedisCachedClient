@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +20,8 @@ namespace RedisCachedClient
         protected readonly ConcurrentObservableDictionary<string, RedisValue> Cache = new ConcurrentObservableDictionary<string, RedisValue>();
         protected CancellationTokenSource CancelToken;
 
+        protected ISubscriber redisSub;
+
         public event EventHandler<RedisChangedEventArgs> DataChanged;
 
         public int RequestDelay { get; set; }
@@ -27,6 +31,7 @@ namespace RedisCachedClient
         public CachedClient(IDatabase database)
         {
             Database = database;
+            redisSub = database.Multiplexer.GetSubscriber();
             Cache.CollectionChanged += (sender, e) => { DataChanged?.Invoke(sender, e); };
         }
 
@@ -142,6 +147,75 @@ namespace RedisCachedClient
         public bool Set(string key, RedisValue value)
         {
             return Database.StringSet(key, value);
+        }
+
+        protected readonly ConcurrentDictionary<string, HashSet<Action<RedisChannel, RedisValue>>> ChannelSubs = new ConcurrentDictionary<string, HashSet<Action<RedisChannel, RedisValue>>>();
+
+        public bool SubscribeChannel(string channel, Action<RedisChannel, RedisValue> handler)
+        {
+
+            if (ChannelSubs.ContainsKey(channel))
+            {
+                if (!ChannelSubs.TryGetValue(channel, out var handlers)) return false;
+                if (handlers.Contains(handler))
+                {
+                    return true;
+                }
+
+                redisSub.Subscribe(channel, handler);
+                return handlers.Add(handler);
+            }
+
+            var hashSet = new HashSet<Action<RedisChannel, RedisValue>>();
+
+            if (ChannelSubs.TryAdd(channel, hashSet))
+            {
+                redisSub.Subscribe(channel, handler);
+                return hashSet.Add(handler); 
+            }
+
+            hashSet = null;
+
+            return false;
+        }
+        
+
+        public bool UnsubscribeChannel(string channel, Action<RedisChannel, RedisValue> handler)
+        {
+            if (!ChannelSubs.TryGetValue(channel, out var handlers)) return false;
+
+            if (!handlers.Contains(handler)) return false;
+
+            if (!handlers.Remove(handler)) return false;
+
+            redisSub.Unsubscribe(channel, handler);
+            return true;
+
+        }
+
+        public long RightPush(RedisKey key, RedisValue value)
+        {
+          return Database.ListRightPush(key, value);
+        }
+
+        public  RedisValue RightPop(RedisKey key)
+        {
+            return Database.ListRightPop(key);
+        }
+
+        public  long LeftPush(RedisKey key, RedisValue value)
+        {
+           return Database.ListLeftPush(key, value);
+        }
+
+        public  RedisValue LeftPop(RedisKey key)
+        {
+            return Database.ListLeftPop(key);
+        }
+
+        public long Publish(string channel, RedisValue value)
+        {
+            return Database.Publish(channel, value);
         }
 
         public IDictionary<string, RedisValue> GetAllCachedData()
