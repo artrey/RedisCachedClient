@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,11 +14,13 @@ namespace RedisCachedClient
     public class CachedClient
     {
         protected readonly IDatabase Database;
+
         protected readonly ConcurrentDictionary<RedisKey, int> CachedKeys = new ConcurrentDictionary<RedisKey, int>();
         protected readonly ConcurrentObservableDictionary<string, RedisValue> Cache = new ConcurrentObservableDictionary<string, RedisValue>();
+
         protected CancellationTokenSource CancelToken;
 
-        protected ISubscriber redisSub;
+        protected ISubscriber RedisSub;
 
         public event EventHandler<RedisChangedEventArgs> DataChanged;
 
@@ -31,7 +31,7 @@ namespace RedisCachedClient
         public CachedClient(IDatabase database)
         {
             Database = database;
-            redisSub = database.Multiplexer.GetSubscriber();
+            RedisSub = database.Multiplexer.GetSubscriber();
             Cache.CollectionChanged += (sender, e) => { DataChanged?.Invoke(sender, e); };
         }
 
@@ -162,7 +162,7 @@ namespace RedisCachedClient
                     return true;
                 }
 
-                redisSub.Subscribe(channel, handler);
+                RedisSub.Subscribe(channel, handler);
                 return handlers.Add(handler);
             }
 
@@ -170,7 +170,7 @@ namespace RedisCachedClient
 
             if (ChannelSubs.TryAdd(channel, hashSet))
             {
-                redisSub.Subscribe(channel, handler);
+                RedisSub.Subscribe(channel, handler);
                 return hashSet.Add(handler); 
             }
 
@@ -188,7 +188,7 @@ namespace RedisCachedClient
 
             if (!handlers.Remove(handler)) return false;
 
-            redisSub.Unsubscribe(channel, handler);
+            RedisSub.Unsubscribe(channel, handler);
             return true;
 
         }
@@ -258,18 +258,18 @@ namespace RedisCachedClient
             foreach (var kv in Cache.RemoveAllObservers()) Unsubscribe(kv.Key, kv.Value.Count);
         }
 
-        private readonly List<Task> tasks = new List<Task>();
+        private readonly List<Task> _tasks = new List<Task>();
 
         protected virtual void UpdateAllData()
         {
-            tasks.Clear();
+            _tasks.Clear();
             
 
-            for (int i = 0; i < CachedKeys.Keys.Count; i++)
+            for (var i = 0; i < CachedKeys.Keys.Count; i++)
             {
                 var index = i;
 
-                tasks.Add(Task.Run(() =>
+                _tasks.Add(Task.Run(() =>
                 {
                     var key = CachedKeys.Keys.ElementAt(index);
                     Cache.AddOrUpdate(key, Database.StringGet(key));
@@ -281,11 +281,11 @@ namespace RedisCachedClient
             {
                 if(CachedKeys.ContainsKey(cacheKey)) continue;
 
-                tasks.Add(Task.Run(() => { Cache.TryRemove(cacheKey, out _); }));
+                _tasks.Add(Task.Run(() => { Cache.TryRemove(cacheKey, out _); }));
             }
 
 
-            Task.WaitAll(tasks.ToArray());
+            Task.WaitAll(_tasks.ToArray());
             
         }
 

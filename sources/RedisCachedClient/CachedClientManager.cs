@@ -7,23 +7,23 @@ namespace RedisCachedClient
 {
     public class CachedClientManager
     {
-        private readonly IConnectionMultiplexer multiplexer;
-        private readonly Dictionary<int, CachedClient> clients = new Dictionary<int, CachedClient>();
+        private readonly IConnectionMultiplexer _multiplexer;
+        private readonly Dictionary<int, CachedClient> _clients = new Dictionary<int, CachedClient>();
 
         public CachedClientManager(IConnectionMultiplexer multiplexer)
         {
-            this.multiplexer = multiplexer;
-            this.multiplexer.ConnectionFailed += (sender, args) =>
+            _multiplexer = multiplexer;
+            _multiplexer.ConnectionFailed += (sender, args) =>
             {
-                foreach (var client in clients.Values)
+                foreach (var client in _clients.Values)
                 {
                     client.Disconnect();
                 }
             };
 
-            this.multiplexer.ConnectionRestored += (sender, args) =>
+            _multiplexer.ConnectionRestored += (sender, args) =>
             {
-                foreach (var client in clients.Values)
+                foreach (var client in _clients.Values)
                 {
                     client.Connect();
                 }
@@ -32,10 +32,10 @@ namespace RedisCachedClient
 
         public CachedClient GetClient(int databaseId)
         {
-            if (clients.TryGetValue(databaseId, out var client)) return client;
+            if (_clients.TryGetValue(databaseId, out var client)) return client;
 
-            client = new CachedClient(multiplexer.GetDatabase(databaseId));
-            clients.Add(databaseId, client);
+            client = new CachedClient(_multiplexer.GetDatabase(databaseId));
+            _clients.Add(databaseId, client);
             return client;
         }
 

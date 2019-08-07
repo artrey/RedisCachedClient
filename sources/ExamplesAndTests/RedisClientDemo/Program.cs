@@ -29,6 +29,7 @@ namespace RedisClientDemo
             var man = new CachedClientManager(conn);
 
             var t = man.GetClient(0);
+            t.Execute("flushdb");
             t.DataChanged += (s, e) => { Console.WriteLine($"[{e.Action}] {e.Key}: {e.OldValue} -> {e.NewValue}"); };
             t.AddPartialObserver(new RedisClientObserver(), "test");
             t.AddPartialObserver(e => Console.WriteLine($"Auto observer [{e.Action}] {e.Key}: {e.OldValue} -> {e.NewValue}"), "test");
@@ -53,11 +54,11 @@ namespace RedisClientDemo
             System.Threading.Thread.Sleep(t.RequestDelay);
 
             t.RightPush(testPubSub, "10");
-            t.RightPush(testPubSub, "10");
-            t.RightPush(testPubSub, "10");
-            t.RightPush(testPubSub, "10");
+            t.RightPush(testPubSub, "9");
+            t.RightPush(testPubSub, "8");
+            t.RightPush(testPubSub, "7");
             System.Threading.Thread.Sleep(t.RequestDelay);
-            //t.LeftPush(testPubSub, "15");
+            t.LeftPush(testPubSub, "15");
            // System.Threading.Thread.Sleep(t.RequestDelay);
 
             while (!t.SubscribeChannel(testPubSub, Handler))
@@ -66,7 +67,12 @@ namespace RedisClientDemo
             }
 
             t.Publish(testPubSub, "Naruto");
-            System.Threading.Thread.Sleep(10000);
+            Console.WriteLine(t.RightPop(testPubSub));
+            Console.WriteLine(t.LeftPop(testPubSub));
+            Console.WriteLine(t.LeftPop(testPubSub));
+            Console.WriteLine(t.RightPop(testPubSub));
+            Console.WriteLine(t.RightPop(testPubSub));
+            System.Threading.Thread.Sleep(2000);
 
             t.Set("test", 255);
             t.ClearCache();
