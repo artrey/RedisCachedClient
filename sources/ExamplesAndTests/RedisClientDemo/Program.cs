@@ -47,12 +47,38 @@ namespace RedisClientDemo
 
             Console.WriteLine(t.GetAllCachedData().Count);
 
+            var testPubSub = "anime";
+
+            //t.Set(testPubSub, "1");
+            System.Threading.Thread.Sleep(t.RequestDelay);
+
+            t.RightPush(testPubSub, "10");
+            t.RightPush(testPubSub, "10");
+            t.RightPush(testPubSub, "10");
+            t.RightPush(testPubSub, "10");
+            System.Threading.Thread.Sleep(t.RequestDelay);
+            //t.LeftPush(testPubSub, "15");
+           // System.Threading.Thread.Sleep(t.RequestDelay);
+
+            while (!t.SubscribeChannel(testPubSub, Handler))
+            {
+
+            }
+
+            t.Publish(testPubSub, "Naruto");
+            System.Threading.Thread.Sleep(10000);
+
             t.Set("test", 255);
             t.ClearCache();
 
             System.Threading.Thread.Sleep(10000);
 
             t.Disconnect();
+        }
+
+        private static void Handler(RedisChannel arg1, RedisValue arg2)
+        {
+            Console.WriteLine($"{arg1} : {arg2}");
         }
     }
 }
