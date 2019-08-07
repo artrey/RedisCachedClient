@@ -13,7 +13,7 @@
     <RepositoryUrl>https://github.com/artrey/RedisCachedClient</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>netstandard redis client cached</PackageTags>
-    <PackageReleaseNotes>Added script evaluating</PackageReleaseNotes>
+    <PackageReleaseNotes>Added channels and array syntax</PackageReleaseNotes>
     <Version>1.2.3</Version>
   </PropertyGroup>
 
