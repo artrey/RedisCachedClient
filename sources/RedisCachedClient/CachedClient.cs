@@ -171,14 +171,14 @@ namespace RedisCachedClient
             if (ChannelSubs.TryAdd(channel, hashSet))
             {
                 RedisSub.Subscribe(channel, handler);
-                return hashSet.Add(handler); 
+                return hashSet.Add(handler);
             }
 
             hashSet = null;
 
             return false;
         }
-        
+
 
         public bool UnsubscribeChannel(string channel, Action<RedisChannel, RedisValue> handler)
         {
@@ -195,20 +195,20 @@ namespace RedisCachedClient
 
         public long RightPush(RedisKey key, RedisValue value)
         {
-          return Database.ListRightPush(key, value);
+            return Database.ListRightPush(key, value);
         }
 
-        public  RedisValue RightPop(RedisKey key)
+        public RedisValue RightPop(RedisKey key)
         {
             return Database.ListRightPop(key);
         }
 
-        public  long LeftPush(RedisKey key, RedisValue value)
+        public long LeftPush(RedisKey key, RedisValue value)
         {
-           return Database.ListLeftPush(key, value);
+            return Database.ListLeftPush(key, value);
         }
 
-        public  RedisValue LeftPop(RedisKey key)
+        public RedisValue LeftPop(RedisKey key)
         {
             return Database.ListLeftPop(key);
         }
@@ -260,33 +260,35 @@ namespace RedisCachedClient
 
         private readonly List<Task> _tasks = new List<Task>();
 
+        private RedisKey[] _subscribedKeys = new RedisKey[0];
+
         protected virtual void UpdateAllData()
         {
             _tasks.Clear();
-            
 
-            for (var i = 0; i < CachedKeys.Keys.Count; i++)
+            if (CachedKeys.Count != _subscribedKeys.Length)
             {
-                var index = i;
-
-                _tasks.Add(Task.Run(() =>
-                {
-                    var key = CachedKeys.Keys.ElementAt(index);
-                    Cache.AddOrUpdate(key, Database.StringGet(key));
-                }));
+                _subscribedKeys = new RedisKey[CachedKeys.Count];
+                // here CachedKeys may be updated from another thread, so we will get exception
+                // but we don't care
+                CachedKeys.Keys.CopyTo(_subscribedKeys, 0);
             }
-            
+
+            var values = Database.StringGet(_subscribedKeys);
+            for (var i = 0; i < _subscribedKeys.Length; ++i)
+            {
+                Cache.AddOrUpdate(_subscribedKeys[i], values[i]);
+            }
 
             foreach (var cacheKey in Cache.Keys)
             {
-                if(CachedKeys.ContainsKey(cacheKey)) continue;
+                if (CachedKeys.ContainsKey(cacheKey)) continue;
 
                 _tasks.Add(Task.Run(() => { Cache.TryRemove(cacheKey, out _); }));
             }
 
-
             Task.WaitAll(_tasks.ToArray());
-            
+
         }
 
         protected async Task UpdateAllDataForeverAsync()
