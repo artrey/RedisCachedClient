@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,12 +16,37 @@ namespace RedisCachedClient
     {
         protected readonly IDatabase Database;
 
-        protected readonly ConcurrentDictionary<RedisKey, int> CachedKeys = new ConcurrentDictionary<RedisKey, int>();
-        protected readonly ConcurrentObservableDictionary<string, RedisValue> Cache = new ConcurrentObservableDictionary<string, RedisValue>();
+        protected readonly ConcurrentObservableDictionary<RedisKey, int> CachedKeys =
+            new ConcurrentObservableDictionary<RedisKey, int>();
+
+        // workaround for decrease memory allocating
+        private bool _cachedKeysResized = false;
+        private RedisKey[] _cachedKeysInternal = new RedisKey[0];
+        private readonly List<Task> _tasks = new List<Task>();
+
+        protected RedisKey[] CurrentCachedKeys
+        {
+            get
+            {
+                if (_cachedKeysResized)
+                {
+                    _cachedKeysInternal = CachedKeys.Keys.ToArray();
+                    _cachedKeysResized = false;
+                }
+
+                return _cachedKeysInternal;
+            }
+        }
+
+        protected readonly ConcurrentObservableDictionary<string, RedisValue> Cache =
+            new ConcurrentObservableDictionary<string, RedisValue>();
+
+        protected readonly ConcurrentDictionary<string, HashSet<Action<RedisChannel, RedisValue>>> ChannelSubs =
+            new ConcurrentDictionary<string, HashSet<Action<RedisChannel, RedisValue>>>();
 
         protected CancellationTokenSource CancelToken;
 
-        protected ISubscriber RedisSub;
+        protected readonly ISubscriber Subscriber;
 
         public event EventHandler<RedisChangedEventArgs> DataChanged;
 
@@ -31,8 +57,17 @@ namespace RedisCachedClient
         public CachedClient(IDatabase database)
         {
             Database = database;
-            RedisSub = database.Multiplexer.GetSubscriber();
-            Cache.CollectionChanged += (sender, e) => { DataChanged?.Invoke(sender, e); };
+            Subscriber = database.Multiplexer.GetSubscriber();
+            Cache.CollectionChanged += (s, e) => { DataChanged?.Invoke(s, e); };
+            CachedKeys.CollectionChanged += (s, e) =>
+            {
+                if (e.Action == NotifyCollectionChangedAction.Add ||
+                    e.Action == NotifyCollectionChangedAction.Remove ||
+                    e.Action == NotifyCollectionChangedAction.Reset)
+                {
+                    _cachedKeysResized = true;
+                }
+            };
         }
 
         public bool Connect()
@@ -41,7 +76,8 @@ namespace RedisCachedClient
 
             CancelToken = new CancellationTokenSource();
             IsConnected = true;
-            Task.Factory.StartNew(UpdateAllDataForeverAsync, CancelToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            Task.Factory.StartNew(UpdateAllDataForeverAsync, CancelToken.Token,
+                TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
             return IsConnected;
         }
@@ -56,10 +92,7 @@ namespace RedisCachedClient
             return !IsConnected;
         }
 
-        public void ClearCache()
-        {
-            Cache.Clear();
-        }
+        public void ClearCache() => Cache.Clear();
 
         protected void Subscribe(string key, int count = 1)
         {
@@ -82,7 +115,10 @@ namespace RedisCachedClient
         {
             if (keys is null) throw new ArgumentNullException(nameof(keys));
 
-            foreach (var key in keys) Subscribe(key);
+            foreach (var key in keys)
+            {
+                Subscribe(key);
+            }
         }
 
 
@@ -90,214 +126,164 @@ namespace RedisCachedClient
         {
             if (keys is null) throw new ArgumentNullException(nameof(keys));
 
-            foreach (var key in keys) Subscribe(key);
+            foreach (var key in keys)
+            {
+                Subscribe(key);
+            }
         }
 
         public void Unsubscribe(params string[] keys)
         {
             if (keys is null) throw new ArgumentNullException(nameof(keys));
 
-            foreach (var key in keys) Unsubscribe(key);
+            foreach (var key in keys)
+            {
+                Unsubscribe(key);
+            }
         }
 
         public void Unsubscribe(IEnumerable<string> keys)
         {
             if (keys is null) throw new ArgumentNullException(nameof(keys));
 
-            foreach (var key in keys) Unsubscribe(key);
+            foreach (var key in keys)
+            {
+                Unsubscribe(key);
+            }
         }
 
-        public void UnsubscribeAll()
-        {
-            CachedKeys.Clear();
-        }
+        public void UnsubscribeAll() => CachedKeys.Clear();
 
-        public RedisResult Eval(string script, RedisKey[] keys = null, RedisValue[] values = null,
-            CommandFlags flags = CommandFlags.None)
-        {
-            return Database.ScriptEvaluate(script, keys, values, flags);
-        }
+        public RedisResult Eval(string script, RedisKey[] keys = null,
+            RedisValue[] values = null, CommandFlags flags = CommandFlags.None)
+            => Database.ScriptEvaluate(script, keys, values, flags);
 
-        public RedisResult Execute(string command, params object[] args)
-        {
-            return Database.Execute(command, args);
-        }
+        public RedisResult Execute(string command, params object[] args) => Database.Execute(command, args);
 
         public RedisResult Execute(string command, ICollection<object> args, CommandFlags flags = CommandFlags.None)
-        {
-            return Database.Execute(command, args, flags);
-        }
+            => Database.Execute(command, args, flags);
 
         public Task<RedisResult> ExecuteAsync(string command, params object[] args)
-        {
-            return Database.ExecuteAsync(command, args);
-        }
+            => Database.ExecuteAsync(command, args);
 
         public Task<RedisResult> ExecuteAsync(string command, ICollection<object> args,
+            CommandFlags flags = CommandFlags.None) => Database.ExecuteAsync(command, args, flags);
+
+        public RedisValue Get(string key) => Database.StringGet(key);
+
+        public bool Set(string key, RedisValue value, CommandFlags flags = CommandFlags.None)
+            => Database.StringSet(key, value, flags: flags);
+
+        public bool SubscribeChannel(string channel, Action<RedisChannel, RedisValue> handler,
             CommandFlags flags = CommandFlags.None)
         {
-            return Database.ExecuteAsync(command, args, flags);
-        }
-
-        public RedisValue Get(string key)
-        {
-            return Database.StringGet(key);
-        }
-
-        public bool Set(string key, RedisValue value)
-        {
-            return Database.StringSet(key, value);
-        }
-
-        protected readonly ConcurrentDictionary<string, HashSet<Action<RedisChannel, RedisValue>>> ChannelSubs = new ConcurrentDictionary<string, HashSet<Action<RedisChannel, RedisValue>>>();
-
-        public bool SubscribeChannel(string channel, Action<RedisChannel, RedisValue> handler)
-        {
-
-            if (ChannelSubs.ContainsKey(channel))
+            if (!ChannelSubs.TryGetValue(channel, out var handlers))
             {
-                if (!ChannelSubs.TryGetValue(channel, out var handlers)) return false;
-                if (handlers.Contains(handler))
-                {
-                    return true;
-                }
-
-                RedisSub.Subscribe(channel, handler);
-                return handlers.Add(handler);
+                handlers = new HashSet<Action<RedisChannel, RedisValue>>();
+                if (!ChannelSubs.TryAdd(channel, handlers)) return false;
             }
 
-            var hashSet = new HashSet<Action<RedisChannel, RedisValue>>();
+            if (handlers.Contains(handler)) return true;
 
-            if (ChannelSubs.TryAdd(channel, hashSet))
-            {
-                RedisSub.Subscribe(channel, handler);
-                return hashSet.Add(handler);
-            }
-
-            hashSet = null;
-
-            return false;
+            Subscriber.Subscribe(channel, handler, flags);
+            return handlers.Add(handler);
         }
 
-
-        public bool UnsubscribeChannel(string channel, Action<RedisChannel, RedisValue> handler)
+        public bool UnsubscribeChannel(string channel, Action<RedisChannel, RedisValue> handler,
+            CommandFlags flags = CommandFlags.None)
         {
             if (!ChannelSubs.TryGetValue(channel, out var handlers)) return false;
-
             if (!handlers.Contains(handler)) return false;
-
             if (!handlers.Remove(handler)) return false;
-
-            RedisSub.Unsubscribe(channel, handler);
+            Subscriber.Unsubscribe(channel, handler, flags);
             return true;
-
         }
 
-        public long RightPush(RedisKey key, RedisValue value)
+        public void UnsubscribeAllChannels(CommandFlags flags = CommandFlags.None)
         {
-            return Database.ListRightPush(key, value);
+            foreach (var kv in ChannelSubs)
+            {
+                foreach (var action in kv.Value)
+                {
+                    Subscriber.Unsubscribe(kv.Key, action, flags);
+                }
+            }
+
+            ChannelSubs.Clear();
         }
 
-        public RedisValue RightPop(RedisKey key)
-        {
-            return Database.ListRightPop(key);
-        }
+        public long RightPush(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
+            => Database.ListRightPush(key, value, flags: flags);
 
-        public long LeftPush(RedisKey key, RedisValue value)
-        {
-            return Database.ListLeftPush(key, value);
-        }
+        public RedisValue RightPop(RedisKey key) => Database.ListRightPop(key);
 
-        public RedisValue LeftPop(RedisKey key)
-        {
-            return Database.ListLeftPop(key);
-        }
+        public long LeftPush(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
+            => Database.ListLeftPush(key, value, flags: flags);
 
-        public long Publish(string channel, RedisValue value)
-        {
-            return Database.Publish(channel, value);
-        }
+        public RedisValue LeftPop(RedisKey key) => Database.ListLeftPop(key);
 
-        public IDictionary<string, RedisValue> GetAllCachedData()
-        {
-            return Cache;
-        }
+        public long Publish(string channel, RedisValue value, CommandFlags flags = CommandFlags.None)
+            => Database.Publish(channel, value, flags);
 
-        public bool TryGetCachedData(string key, out RedisValue value)
-        {
-            return Cache.TryGetValue(key, out value);
-        }
+        public IDictionary<string, RedisValue> GetAllCachedData() => Cache;
+
+        public bool TryGetCachedData(string key, out RedisValue value) => Cache.TryGetValue(key, out value);
 
         public void AddPartialObserver(IRedisClientObserver observer, params string[] keys)
-        {
-            Subscribe(Cache.AddPartialObserver(observer, keys).Keys);
-        }
+            => Subscribe(Cache.AddPartialObserver(observer, keys).Keys);
 
         public void AddPartialObserver(Action<RedisChangedEventArgs> action, params string[] keys)
-        {
-            Subscribe(Cache.AddPartialObserver(action, keys).Keys);
-        }
+            => Subscribe(Cache.AddPartialObserver(action, keys).Keys);
 
         public void RemovePartialObserver(IRedisClientObserver observer, params string[] keys)
-        {
-            Unsubscribe(Cache.RemovePartialObserver(observer, keys).Keys);
-        }
+            => Unsubscribe(Cache.RemovePartialObserver(observer, keys).Keys);
 
         public void RemovePartialObserver(IRedisClientObserver observer)
-        {
-            Unsubscribe(Cache.RemovePartialObserver(observer).Keys);
-        }
+            => Unsubscribe(Cache.RemovePartialObserver(observer).Keys);
 
         public void RemovePartialObserver(params string[] keys)
         {
-            foreach (var kv in Cache.RemovePartialObserver(keys)) Unsubscribe(kv.Key, kv.Value.Count);
+            foreach (var kv in Cache.RemovePartialObserver(keys))
+            {
+                Unsubscribe(kv.Key, kv.Value.Count);
+            }
         }
 
         public void RemoveAllObservers()
         {
-            foreach (var kv in Cache.RemoveAllObservers()) Unsubscribe(kv.Key, kv.Value.Count);
+            foreach (var kv in Cache.RemoveAllObservers())
+            {
+                Unsubscribe(kv.Key, kv.Value.Count);
+            }
         }
 
-        private readonly List<Task> _tasks = new List<Task>();
-
-        private RedisKey[] _subscribedKeys = new RedisKey[0];
-
-        protected virtual void UpdateAllData()
+        protected virtual async Task UpdateAllData()
         {
-            _tasks.Clear();
-
-            if (CachedKeys.Count != _subscribedKeys.Length)
+            var values = await Database.StringGetAsync(CurrentCachedKeys).ConfigureAwait(false);
+            for (var i = 0; i < CurrentCachedKeys.Length; ++i)
             {
-                _subscribedKeys = new RedisKey[CachedKeys.Count];
-                // here CachedKeys may be updated from another thread, so we will get exception
-                // but we don't care
-                CachedKeys.Keys.CopyTo(_subscribedKeys, 0);
-            }
-
-            var values = Database.StringGet(_subscribedKeys);
-            for (var i = 0; i < _subscribedKeys.Length; ++i)
-            {
-                Cache.AddOrUpdate(_subscribedKeys[i], values[i]);
+                Cache.AddOrUpdate(CurrentCachedKeys[i], values[i]);
             }
 
             foreach (var cacheKey in Cache.Keys)
             {
                 if (CachedKeys.ContainsKey(cacheKey)) continue;
-
                 _tasks.Add(Task.Run(() => { Cache.TryRemove(cacheKey, out _); }));
             }
 
-            Task.WaitAll(_tasks.ToArray());
+            if (_tasks.Count == 0) return;
 
+            Task.WaitAll(_tasks.ToArray());
+            _tasks.Clear();
         }
 
-        protected async Task UpdateAllDataForeverAsync()
+        private async Task UpdateAllDataForeverAsync()
         {
             while (IsConnected)
             {
                 try
                 {
-                    UpdateAllData();
+                    await UpdateAllData().ConfigureAwait(false);
                     await Task.Delay(RequestDelay).ConfigureAwait(false);
                 }
                 catch (Exception)

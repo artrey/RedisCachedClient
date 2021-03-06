@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using StackExchange.Redis;
@@ -20,7 +21,6 @@ namespace RedisCachedClient
                     client.Disconnect();
                 }
             };
-
             _multiplexer.ConnectionRestored += (sender, args) =>
             {
                 foreach (var client in _clients.Values)
@@ -44,11 +44,8 @@ namespace RedisCachedClient
             var client = GetClient(0);
             var result = client.Eval("return redis.call('info', 'keyspace')");
             var infoString = result.IsNull ? "" : result.ToString();
-            return new Regex(@"db(\d+)").Matches(infoString).Cast<Match>().Select(m =>
-            {
-                int.TryParse(m.Groups[1].Value, out int db);
-                return db;
-            }).ToList();
+            return new Regex(@"db(\d+)").Matches(infoString).Cast<Match>()
+                .Select(m => Convert.ToInt32(m.Groups[1].Value)).ToList();
         }
     }
 }

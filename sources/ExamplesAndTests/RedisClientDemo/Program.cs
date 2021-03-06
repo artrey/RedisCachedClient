@@ -4,7 +4,7 @@ using RedisCachedClient;
 
 namespace RedisClientDemo
 {
-    internal class Program
+    internal static class Program
     {
         private static void Main()
         {
@@ -32,7 +32,8 @@ namespace RedisClientDemo
             t.Execute("flushdb");
             t.DataChanged += (s, e) => { Console.WriteLine($"[{e.Action}] {e.Key}: {e.OldValue} -> {e.NewValue}"); };
             t.AddPartialObserver(new RedisClientObserver(), "test");
-            t.AddPartialObserver(e => Console.WriteLine($"Auto observer [{e.Action}] {e.Key}: {e.OldValue} -> {e.NewValue}"), "test");
+            t.AddPartialObserver(
+                e => Console.WriteLine($"Auto observer [{e.Action}] {e.Key}: {e.OldValue} -> {e.NewValue}"), "test");
             t.Subscribe("test3");
             t.RequestDelay = 200;
             t.Connect();
@@ -48,7 +49,7 @@ namespace RedisClientDemo
 
             Console.WriteLine(t.GetAllCachedData().Count);
 
-            var testPubSub = "anime";
+            var testPubSub = "channelName";
 
             //t.Set(testPubSub, "1");
             System.Threading.Thread.Sleep(t.RequestDelay);
@@ -59,14 +60,13 @@ namespace RedisClientDemo
             t.RightPush(testPubSub, "7");
             System.Threading.Thread.Sleep(t.RequestDelay);
             t.LeftPush(testPubSub, "15");
-           // System.Threading.Thread.Sleep(t.RequestDelay);
+            // System.Threading.Thread.Sleep(t.RequestDelay);
 
             while (!t.SubscribeChannel(testPubSub, Handler))
             {
-
             }
 
-            t.Publish(testPubSub, "Naruto");
+            t.Publish(testPubSub, "testPublishValue");
             Console.WriteLine(t.RightPop(testPubSub));
             Console.WriteLine(t.LeftPop(testPubSub));
             Console.WriteLine(t.LeftPop(testPubSub));

@@ -3,18 +3,16 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <NeutralLanguage></NeutralLanguage>
     <Authors>artrey</Authors>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/artrey/RedisCachedClient/master/LICENSE.txt</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/artrey/RedisCachedClient</PackageProjectUrl>
     <Description>Cached client for redis based on StackExchange.Redis</Description>
-    <Copyright>Copyright 2019</Copyright>
-    <Company />
+    <Copyright>Copyright 2021</Copyright>
     <RepositoryUrl>https://github.com/artrey/RedisCachedClient</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>netstandard redis client cached</PackageTags>
-    <PackageReleaseNotes>Added channels and array syntax</PackageReleaseNotes>
-    <Version>1.2.5</Version>
+    <Version>1.2.7</Version>
+    <PackageReleaseNotes>Added tests</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -26,8 +24,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ConcurrentObservableCollections" Version="1.1.8" />
-    <PackageReference Include="StackExchange.Redis" Version="2.0.601" />
+    <PackageReference Include="ConcurrentObservableCollections" Version="1.1.9" />
+    <PackageReference Include="StackExchange.Redis" Version="2.2.4" />
   </ItemGroup>
 
 </Project>
